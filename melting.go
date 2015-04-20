@@ -21,25 +21,34 @@ func Melt(src, dest interface{}) error {
 	if reflect.TypeOf(src).Kind() == reflect.Ptr {
 		srcEl = srcEl.Elem()
 	}
-	if destEl.Kind() == reflect.Struct {
-		srcType := srcEl.Type()
-		for i := 0; i < srcEl.NumField(); i++ {
-			fieldName := srcType.Field(i).Name
-			if destField := destEl.FieldByName(fieldName); destField.IsValid() {
-				srcField := srcEl.Field(i)
-				err := meltValue(srcField, destField)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	} else {
-		return meltValue(srcEl, destEl)
-	}
+	return meltValue(srcEl, destEl)
 }
 
 func meltValue(src, dest reflect.Value) error {
+	switch dest.Kind() {
+	case reflect.Struct:
+		return meltStruct(src, dest)
+	default:
+		return meltAssignable(src, dest)
+	}
+}
+
+func meltStruct(src, dest reflect.Value) error {
+	srcType := src.Type()
+	for i := 0; i < src.NumField(); i++ {
+		fieldName := srcType.Field(i).Name
+		if destField := dest.FieldByName(fieldName); destField.IsValid() {
+			srcField := src.Field(i)
+			err := meltValue(srcField, destField)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func meltAssignable(src, dest reflect.Value) error {
 	if !dest.CanSet() {
 		return errors.New(fmt.Sprintf("destination field %v is not assignable", dest))
 	}

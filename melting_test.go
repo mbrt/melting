@@ -35,6 +35,21 @@ func TestErrNotRefField(t *testing.T) {
 	}
 }
 
+func TestNotRefSrcField(t *testing.T) {
+	src := 3.14
+	dest := 15.0
+	err := Melt(src, &dest)
+	if err != nil {
+		t.Fatalf("cannot set %v to %v", src, dest)
+	}
+	if src != 3.14 {
+		t.Fatalf("expected src: %v, got %v", 3.14, src)
+	}
+	if dest != 3.14 {
+		t.Fatalf("expected dest: %v, got %v", 3.14, dest)
+	}
+}
+
 type Simple struct {
 	F1 string
 	F2 bool
@@ -153,7 +168,7 @@ func TestEmbeddedBiggerStruct(t *testing.T) {
 	dest := Embedded{F1: 2, F2: Simple{F1: "a", F2: false, F3: 7}}
 	err := Melt(&src, &dest)
 	if err != nil {
-		t.Fatalf("cannot set %v to %v", src, dest)
+		t.Fatalf("cannot set %v to %v, with error: %v", src, dest, err)
 	}
 	if src.F1 != 1 || src.F2.F1 != "a" || src.F2.F2 != true || src.F2.F3 != 7 {
 		t.Fatalf("changed source struct in %v", src)
