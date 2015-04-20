@@ -1,3 +1,12 @@
+// Copyright 2015 Michele Bertasi. All rights reserved.
+// Use of this source code is governed by a MIT-style
+// license that can be found in the LICENSE file.
+
+/*
+Package melting provides an utility to merge structures of differennt
+types. Fields of the source structures are assigned to fields of the
+destination structure matching by field names.
+*/
 package melting
 
 import (
@@ -16,11 +25,12 @@ func Melt(src, dest interface{}) error {
 	}
 	destEl := reflect.ValueOf(dest).Elem()
 
-	// handle src: ptr or not
+	// handle optional src ptr
 	srcEl := reflect.ValueOf(src)
 	if reflect.TypeOf(src).Kind() == reflect.Ptr {
 		srcEl = srcEl.Elem()
 	}
+
 	return meltValue(srcEl, destEl)
 }
 

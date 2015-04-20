@@ -72,6 +72,22 @@ func TestSameStruct(t *testing.T) {
 	}
 }
 
+func TestNotRefSrcStruct(t *testing.T) {
+	src := Simple{F1: "a", F2: true, F3: 7}
+	dest := Simple{F1: "b", F2: false, F3: 8}
+
+	err := Melt(src, &dest)
+	if err != nil {
+		t.Fatalf("cannot set %v to %v", src, dest)
+	}
+	if src.F1 != "a" || src.F2 != true || src.F3 != 7 {
+		t.Fatalf("changed source struct in %v", src)
+	}
+	if dest.F1 != "a" || dest.F2 != true || dest.F3 != 7 {
+		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+	}
+}
+
 type Bigger struct {
 	F1 string
 	F2 bool
