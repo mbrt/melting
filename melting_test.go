@@ -26,6 +26,15 @@ func TestErrField(t *testing.T) {
 	}
 }
 
+func TestErrNotRefField(t *testing.T) {
+	src := 3.14
+	dest := 15.0
+	err := Melt(&src, dest)
+	if err == nil {
+		t.Fatalf("No error reported with dest not pointer")
+	}
+}
+
 type Simple struct {
 	F1 string
 	F2 bool
@@ -36,7 +45,7 @@ func TestSameStruct(t *testing.T) {
 	src := Simple{F1: "a", F2: true, F3: 7}
 	dest := Simple{F1: "b", F2: false, F3: 8}
 
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
@@ -59,7 +68,7 @@ func TestBiggerSrc(t *testing.T) {
 	src := Bigger{F1: "a", F2: true, F3: 7, F4: 8}
 	dest := Simple{F1: "b", F2: false, F3: 8}
 
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
@@ -81,7 +90,7 @@ func TestReorderedStruct(t *testing.T) {
 	src := RSimple{F1: "a", F2: true, F3: 7}
 	dest := Simple{F1: "b", F2: false, F3: 8}
 
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
@@ -102,7 +111,7 @@ func TestSmallerStruct(t *testing.T) {
 	src := Smaller{F1: "a", F3: 7}
 	dest := Simple{F1: "b", F2: false, F3: 8}
 
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
@@ -122,7 +131,7 @@ type Embedded struct {
 func TestEmbeddedStruct(t *testing.T) {
 	src := Embedded{F1: 1, F2: Simple{F1: "a", F2: true, F3: 7}}
 	dest := Embedded{F1: 2, F2: Simple{F1: "a", F2: false, F3: 7}}
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
@@ -142,7 +151,7 @@ type EmbeddedBigger struct {
 func TestEmbeddedBiggerStruct(t *testing.T) {
 	src := EmbeddedBigger{F1: 1, F2: Bigger{F1: "a", F2: true, F3: 7, F4: 8}}
 	dest := Embedded{F1: 2, F2: Simple{F1: "a", F2: false, F3: 7}}
-	err := Melt(src, dest)
+	err := Melt(&src, &dest)
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}

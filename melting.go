@@ -10,8 +10,17 @@ import (
 // If source and destination are not structs, they must
 // have the same type. If not, melting is applied.
 func Melt(src, dest interface{}) error {
-	srcEl := reflect.ValueOf(src).Elem()
+	// check dest ptr
+	if reflect.TypeOf(dest).Kind() != reflect.Ptr {
+		return errors.New(fmt.Sprintf("dest value %v is not Ptr", dest))
+	}
 	destEl := reflect.ValueOf(dest).Elem()
+
+	// handle src: ptr or not
+	srcEl := reflect.ValueOf(src)
+	if reflect.TypeOf(src).Kind() == reflect.Ptr {
+		srcEl = srcEl.Elem()
+	}
 	if destEl.Kind() == reflect.Struct {
 		srcType := srcEl.Type()
 		for i := 0; i < srcEl.NumField(); i++ {
@@ -37,7 +46,6 @@ func meltValue(src, dest reflect.Value) error {
 	if !dest.Type().AssignableTo(src.Type()) {
 		return errors.New(fmt.Sprintf("cannot assign type %v to %v", src.Type(), dest.Type()))
 	}
-	fmt.Printf("meltValue from %v to %v\n", src, dest)
 	dest.Set(src)
 	return nil
 }
