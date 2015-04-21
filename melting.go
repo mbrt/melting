@@ -14,7 +14,8 @@
 	the source value will override the destination value; if F is present in
 	the source structure but not in destination, the field will be ignored;
 	if F is present in the destination structure, but not in the source,
-	the destination will preserve its value.
+	the destination will preserve its value. Embedded sub-structures are
+	supported, and the same algorithm is applied for them.
 
 	For example:
 		type Source struct {
