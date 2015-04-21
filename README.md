@@ -1,4 +1,4 @@
-# melting
+ melting
 =========================================================
 
 [![GoDoc](https://godoc.org/github.com/mbrt/melting?status.png)](https://godoc.org/github.com/mbrt/melting)
