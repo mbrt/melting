@@ -10,13 +10,11 @@
 	The destination parameter must be a pointer to a structure, because
 	its fields will be overridden by fields of the source structure.
 
-	Given a field F:
-		if F is present in the source and destination structures, the source
-		value will override the destination value;
-		if F is present in the source structure but not in destination, the
-		field will be ignored;
-		if F is present in the destination structure, but not in the source,
-		the destination will preserve its value.
+	Given a field F: if F is present in the source and destination structures,
+	the source value will override the destination value; if F is present in
+	the source structure but not in destination, the field will be ignored;
+	if F is present in the destination structure, but not in the source,
+	the destination will preserve its value.
 
 	For example:
 		type Source struct {
@@ -35,8 +33,8 @@
 			melting.Melt(s, &d)
 		}
 
-	After the Melt call, source s will stay unchanged,
-	while destination d will be equal to this one:
+	After the Melt call, source will not change, while
+	destination will assume this value:
 
 		Dest{F1: 3, F2: "a", F3: 3.0}
 */
@@ -49,11 +47,10 @@ import (
 )
 
 // Melt assigns a source value to a destination.
-// If source and destination are not structs, they must
-// have the same type. If not, melting is applied.
-// The destination fields will assume the same value of
-// source, for the fields they have in common. If those
-// fields have different types, an error will be returned.
+// If not, melting is applied. The fields of the destination
+// struct will get the value of the source fields, for those
+// they have in common. If those fields have different types,
+// an error will be returned.
 func Melt(src, dest interface{}) error {
 	// check dest ptr
 	if reflect.TypeOf(dest).Kind() != reflect.Ptr {
