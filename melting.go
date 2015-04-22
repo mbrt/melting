@@ -68,6 +68,21 @@ func Melt(src, dest interface{}) error {
 	return meltValue(srcEl, destEl)
 }
 
+// Filter is an interface that can be used to instrument the melting
+// function to not consider certain fields for the melt.
+type Filter interface {
+	// ConsiderField returns true if the given field name have
+	// to be considered for the melting. The source and destination
+	// values are also provided.
+	ConsiderField(name string, src, dest reflect.Value) bool
+}
+
+// MeltWithFilter is just like Melt, but with a user supplied filter,
+// that allows to ignore certain fields in the melt.
+func MeltWithFilter(src, dest interface{}, filter Filter) error {
+	return nil
+}
+
 func meltValue(src, dest reflect.Value) error {
 	switch dest.Kind() {
 	case reflect.Struct:
