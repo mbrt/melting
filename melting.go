@@ -53,6 +53,27 @@ import (
 // they have in common. If those fields have different types,
 // an error will be returned.
 func Melt(src, dest interface{}) error {
+	return MeltWithFilter(src, dest, defaultFilter{})
+}
+
+// Filter is an interface that can be used to instrument the melting
+// function to not consider certain fields for the melt.
+type Filter interface {
+	// ConsiderField returns true if the given field name have
+	// to be considered for the melting. The source and destination
+	// values are also provided.
+	ConsiderField(name string, src, dest reflect.Value) bool
+}
+
+type defaultFilter struct{}
+
+func (defaultFilter) ConsiderField(name string, src, dest reflect.Value) bool {
+	return true
+}
+
+// MeltWithFilter is just like Melt, but with a user supplied filter,
+// that allows to ignore certain fields in the melt.
+func MeltWithFilter(src, dest interface{}, filter Filter) error {
 	// check dest ptr
 	if reflect.TypeOf(dest).Kind() != reflect.Ptr {
 		return errors.New(fmt.Sprintf("dest value %v is not Ptr", dest))
@@ -65,40 +86,28 @@ func Melt(src, dest interface{}) error {
 		srcEl = srcEl.Elem()
 	}
 
-	return meltValue(srcEl, destEl)
+	return meltValue(srcEl, destEl, filter)
 }
 
-// Filter is an interface that can be used to instrument the melting
-// function to not consider certain fields for the melt.
-type Filter interface {
-	// ConsiderField returns true if the given field name have
-	// to be considered for the melting. The source and destination
-	// values are also provided.
-	ConsiderField(name string, src, dest reflect.Value) bool
-}
-
-// MeltWithFilter is just like Melt, but with a user supplied filter,
-// that allows to ignore certain fields in the melt.
-func MeltWithFilter(src, dest interface{}, filter Filter) error {
-	return nil
-}
-
-func meltValue(src, dest reflect.Value) error {
+func meltValue(src, dest reflect.Value, filter Filter) error {
 	switch dest.Kind() {
 	case reflect.Struct:
-		return meltStruct(src, dest)
+		return meltStruct(src, dest, filter)
 	default:
 		return meltAssignable(src, dest)
 	}
 }
 
-func meltStruct(src, dest reflect.Value) error {
+func meltStruct(src, dest reflect.Value, filter Filter) error {
 	srcType := src.Type()
 	for i := 0; i < src.NumField(); i++ {
 		fieldName := srcType.Field(i).Name
+		if !filter.ConsiderField(fieldName, src, dest) {
+			continue
+		}
 		if destField := dest.FieldByName(fieldName); destField.IsValid() {
 			srcField := src.Field(i)
-			err := meltValue(srcField, destField)
+			err := meltValue(srcField, destField, filter)
 			if err != nil {
 				return err
 			}

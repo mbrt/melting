@@ -4,7 +4,10 @@
 
 package melting
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestField(t *testing.T) {
 	src := 3.14
@@ -72,7 +75,7 @@ func TestSameStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != "a" || dest.F2 != true || dest.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -88,7 +91,7 @@ func TestNotRefSrcStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != "a" || dest.F2 != true || dest.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -111,7 +114,7 @@ func TestBiggerSrc(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != "a" || dest.F2 != true || dest.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -133,7 +136,7 @@ func TestReorderedStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != "a" || dest.F2 != true || dest.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -154,7 +157,7 @@ func TestSmallerStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != "a" || dest.F2 != false || dest.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -174,7 +177,7 @@ func TestEmbeddedStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != 1 || dest.F2.F1 != "a" || dest.F2.F2 != true || dest.F2.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
 
@@ -194,6 +197,34 @@ func TestEmbeddedBiggerStruct(t *testing.T) {
 		t.Fatalf("changed source struct in %v", src)
 	}
 	if dest.F1 != 1 || dest.F2.F1 != "a" || dest.F2.F2 != true || dest.F2.F3 != 7 {
-		t.Fatalf("expected dest struct: %v, got: ", src, dest)
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
+	}
+}
+
+type filter struct {
+	exclude string
+}
+
+func (f *filter) ConsiderField(name string, src, dest reflect.Value) bool {
+	return f.exclude != name
+}
+
+func NewFilter(exclusion string) *filter {
+	return &filter{exclude: exclusion}
+}
+
+func TestFilter(t *testing.T) {
+	src := Simple{F1: "a", F2: true, F3: 7}
+	dest := Simple{F1: "b", F2: false, F3: 8}
+
+	err := MeltWithFilter(&src, &dest, NewFilter("F2"))
+	if err != nil {
+		t.Fatalf("cannot set %v to %v", src, dest)
+	}
+	if src.F1 != "a" || src.F2 != true || src.F3 != 7 {
+		t.Fatalf("changed source struct in %v", src)
+	}
+	if dest.F1 != "a" || dest.F2 != false || dest.F3 != 7 {
+		t.Fatalf("expected dest struct: %v, got: %v", src, dest)
 	}
 }
