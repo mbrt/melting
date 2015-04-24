@@ -205,8 +205,8 @@ type filter struct {
 	exclude string
 }
 
-func (f *filter) ConsiderField(name string, src, dest reflect.Value) bool {
-	return f.exclude != name
+func (f *filter) Filter(srcField, destField reflect.StructField, src, dest reflect.Value) bool {
+	return f.exclude != srcField.Name
 }
 
 func NewFilter(exclusion string) *filter {

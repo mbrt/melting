@@ -57,23 +57,23 @@ func Melt(src, dest interface{}) error {
 }
 
 // Filter is an interface that can be used to instrument the melting
-// function to not consider certain fields for the melt.
-type Filter interface {
-	// ConsiderField returns true if the given field name have
+// function to ignore certain fields.
+type Filterer interface {
+	// Filter returns true if the given field name have
 	// to be considered for the melting. The source and destination
 	// values are also provided.
-	ConsiderField(name string, src, dest reflect.Value) bool
+	Filter(srcField, destField reflect.StructField, src, dest reflect.Value) bool
 }
 
 type defaultFilter struct{}
 
-func (defaultFilter) ConsiderField(name string, src, dest reflect.Value) bool {
+func (defaultFilter) Filter(srcField, destField reflect.StructField, src, dest reflect.Value) bool {
 	return true
 }
 
 // MeltWithFilter is just like Melt, but with a user supplied filter,
 // that allows to ignore certain fields in the melt.
-func MeltWithFilter(src, dest interface{}, filter Filter) error {
+func MeltWithFilter(src, dest interface{}, filter Filterer) error {
 	// check dest ptr
 	if reflect.TypeOf(dest).Kind() != reflect.Ptr {
 		return errors.New(fmt.Sprintf("dest value %v is not Ptr", dest))
@@ -89,7 +89,7 @@ func MeltWithFilter(src, dest interface{}, filter Filter) error {
 	return meltValue(srcEl, destEl, filter)
 }
 
-func meltValue(src, dest reflect.Value, filter Filter) error {
+func meltValue(src, dest reflect.Value, filter Filterer) error {
 	switch dest.Kind() {
 	case reflect.Struct:
 		return meltStruct(src, dest, filter)
@@ -98,18 +98,18 @@ func meltValue(src, dest reflect.Value, filter Filter) error {
 	}
 }
 
-func meltStruct(src, dest reflect.Value, filter Filter) error {
+func meltStruct(src, dest reflect.Value, filter Filterer) error {
 	srcType := src.Type()
 	for i := 0; i < src.NumField(); i++ {
-		fieldName := srcType.Field(i).Name
-		if !filter.ConsiderField(fieldName, src, dest) {
-			continue
-		}
-		if destField := dest.FieldByName(fieldName); destField.IsValid() {
-			srcField := src.Field(i)
-			err := meltValue(srcField, destField, filter)
-			if err != nil {
-				return err
+		srcField := srcType.Field(i)
+		if destField, ok := dest.Type().FieldByName(srcField.Name); ok {
+			srcValue := src.Field(i)
+			destValue := dest.FieldByIndex(destField.Index)
+			if filter.Filter(srcField, destField, srcValue, destValue) {
+				err := meltValue(srcValue, destValue, filter)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
