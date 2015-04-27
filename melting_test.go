@@ -201,6 +201,22 @@ func TestEmbeddedBiggerStruct(t *testing.T) {
 	}
 }
 
+type Simple2 struct {
+	F1 string
+	F2 int
+	F3 int
+}
+
+func TestErrDifferentTypeField(t *testing.T) {
+	src := Simple{F1: "a", F2: true, F3: 7}
+	dest := Simple2{F1: "b", F2: 9, F3: 8}
+
+	err := Melt(&src, &dest)
+	if err == nil {
+		t.Fatalf("unexpected missing error in melt different type fields")
+	}
+}
+
 type filter struct {
 	exclude string
 }
