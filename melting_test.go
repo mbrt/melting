@@ -225,7 +225,7 @@ func (f *filter) Filter(srcField, destField reflect.StructField, src, dest refle
 	return f.exclude != srcField.Name
 }
 
-func NewFilter(exclusion string) *filter {
+func newFilter(exclusion string) *filter {
 	return &filter{exclude: exclusion}
 }
 
@@ -233,7 +233,7 @@ func TestFilter(t *testing.T) {
 	src := Simple{F1: "a", F2: true, F3: 7}
 	dest := Simple{F1: "b", F2: false, F3: 8}
 
-	err := MeltWithFilter(&src, &dest, NewFilter("F2"))
+	err := MeltWithFilter(&src, &dest, newFilter("F2"))
 	if err != nil {
 		t.Fatalf("cannot set %v to %v", src, dest)
 	}
