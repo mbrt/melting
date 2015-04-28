@@ -60,6 +60,10 @@ func ExampleMeltWithFilter() {
 	// Source will override Dest for field 'F1' only;
 	// field 'F3' will be ignored because Source does not have it,
 	// while 'F2' will be ignored because of the filter.
+	//
+	// nameFilter is a struct that contains a field name.
+	// Its 'Filter' function returns true only if the given field
+	// name is different than the stored one.
 	err := MeltWithFilter(s, &d, &nameFilter{"F2"})
 	if err != nil {
 		log.Fatalf("cannot assign source to dest, error %v", err)
